@@ -28,7 +28,7 @@ for i in range(1, num_clans + 1):
             file_uploads[key_name] = file_upload
 
 # Type Menu Dropdown ke liye
-sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
+sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
@@ -132,7 +132,9 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             "Donations": "Total Donated",
             "EOS Trophies": "Season-End Trophies",
             "Capital Gold Contributed":"Capital Gold Contributed",
-            "Capital Gold Looted":"Capital Gold Looted"
+            "Capital Gold Looted":"Capital Gold Looted",
+            "Activity":"Activity Score",
+            "Attacks":"Attacks in a Season"
         }
         titles = {
             "War Stars": "War Monger",
@@ -144,10 +146,12 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             "All": "Best Players ",
             "Main Base":"Main Base",
             "Builder Base":"Builder Base",
-            "Capital":"Capital"
+            "Capital":"Capital",
+            "Activity":"Activity King",
+            "Attacks":"Attack Master"
         }
         sub_data=final_merged_data
-        final_merged_data.drop(columns={"Final Activty Score","Activity Score","Missed Attack Score"},inplace=True)
+        final_merged_data.drop(columns={"Final Activty Score","Missed Attack Score"},inplace=True)
         final_merged_data=final_merged_data.reset_index(drop=True)
         num_players_to_display = st.number_input("Number of Players to Display", min_value=1, max_value=len(final_merged_data), value=10)
         if sort_order=="Main Base":
@@ -211,6 +215,18 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
                 display_df=display_df[["Name","Clan","Season-End Trophies","Total Stars",'Total Donated']]
                 fig=go.Figure()
                 fig=px.bar(display_df,x=display_df.Name,y='Season-End Trophies',color="Season-End Trophies",text='Season-End Trophies',title="Maximum Trophies",height=500,width=700,color_continuous_scale='YlOrRd')
+                fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
+
+            if sort_order=="Attacks":
+                display_df=display_df[["Name","Clan","Activity Score","Attacks in a Season"]]
+                fig=go.Figure()
+                fig=px.bar(display_df,x=display_df.Name,y='Attacks in a Season',color="Attacks in a Season",text='Attacks in a Season',title="Maximum Attacks in Season",height=500,width=700,color_continuous_scale='YlOrRd')
+                fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
+            
+            if sort_order=="Activity":
+                display_df=display_df[["Name","Clan","Activity Score","Attacks in a Season"]]
+                fig=go.Figure()
+                fig=px.bar(display_df,x=display_df.Name,y='Activity Score',color="Activity Score",text='Activity Score',title="Activity",height=500,width=700,color_continuous_scale='YlOrRd')
                 fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
 
 
