@@ -37,7 +37,7 @@ def fook_graham():
     st.audio(audio_bytes, format='audio/mp3')
 
 # Create a Streamlit button
-if st.button("Click me to say 'Fook Graham!'"):
+if st.button("Show Love to Graham"):
     fook_graham()
 
 with st.spinner("Loading..."):
