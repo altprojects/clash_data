@@ -5,11 +5,11 @@ from io import BytesIO
 import plotly.express as px
 import plotly.graph_objs as go
 import base64  # Format conversion ke liye
-
+import pygame
+pygame.mixer.init()
 
 # Page Configuration Setup kar rhe
 st.set_page_config(page_title="END OF SEASON")
-
 # Sidebar DropDown
 st.sidebar.title("Select Number of Clans")
 num_clans = st.sidebar.selectbox("Number of Clans", [2, 3, 4, 5, 6, 7, 8])
@@ -29,6 +29,14 @@ for i in range(1, num_clans + 1):
 
 # Type Menu Dropdown ke liye
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
+sound = pygame.mixer.Sound('app\\fook_graham.mp3')  # Replace with your audio file path
+if st.button("Fook Graham"):
+    sound.play()
+# Place the button in the center
+st.markdown('<div class="center">', unsafe_allow_html=True)
+if st.button("Fook Graham"):
+    sound.play()
+st.markdown('</div>', unsafe_allow_html=True)
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
@@ -250,4 +258,3 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             excel_buffer.seek(0)
             href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64.b64encode(excel_buffer.read()).decode()}" download="final_merged_data.xlsx">Click here to download the Excel file</a>'
             st.markdown(href, unsafe_allow_html=True)
-
