@@ -1,3 +1,4 @@
+import pygame
 import streamlit as st
 import pandas as pd
 import io
@@ -5,8 +6,7 @@ from io import BytesIO
 import plotly.express as px
 import plotly.graph_objs as go
 import base64  # Format conversion ke liye
-import pygame
-pygame.mixer.init()
+
 
 # Page Configuration Setup kar rhe
 st.set_page_config(page_title="END OF SEASON")
@@ -29,14 +29,16 @@ for i in range(1, num_clans + 1):
 
 # Type Menu Dropdown ke liye
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
-sound = pygame.mixer.Sound('app\\fook_graham.mp3')  # Replace with your audio file path
-if st.button("Fook Graham"):
-    sound.play()
-# Place the button in the center
-st.markdown('<div class="center">', unsafe_allow_html=True)
-if st.button("Fook Graham"):
-    sound.play()
-st.markdown('</div>', unsafe_allow_html=True)
+try:
+    pygame.mixer.init()
+    sound = pygame.mixer.Sound('app\\fook_graham.mp3')
+
+    if st.button("Fook Graham"):
+        sound.play()
+
+except pygame.error as e:
+    st.error("An error occurred while initializing the audio: {}".format(e))
+
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
