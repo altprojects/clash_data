@@ -31,7 +31,7 @@ for i in range(1, num_clans + 1):
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
 try:
     pygame.mixer.init()
-    sound = pygame.mixer.Sound('fook_graham.mp3')
+    sound = pygame.mixer.Sound('clash_data/fook_graham.mp3')
 
     if st.button("Fook Graham"):
         sound.play()
