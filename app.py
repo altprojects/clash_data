@@ -29,12 +29,17 @@ for i in range(1, num_clans + 1):
 
 # Type Menu Dropdown ke liye
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
-audio_file = st.audio('fook_graham.mp3', format='audio/mp3')
 
-# Create a Streamlit button to play the audio
-if st.button("Fook Graham"):
-    audio_file
-    
+# Function to display the message and play audio when the button is clicked
+def fook_graham():
+    audio_file = open('fook_graham.mp3', 'rb')  # Replace 'fook_graham.mp3' with your audio file path
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format='audio/mp3')
+
+# Create a Streamlit button
+if st.button("Click me to say 'Fook Graham!'"):
+    fook_graham()
+
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
