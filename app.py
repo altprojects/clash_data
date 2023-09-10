@@ -30,7 +30,6 @@ for i in range(1, num_clans + 1):
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
 # Function to display the message and play audio when the button is clicked
 def fook_graham():
-    st.write("Fook Graham!")
     audio_file = open('fook_graham.mp3', 'rb')  # Replace 'fook_graham.mp3' with your audio file path
     audio_bytes = audio_file.read()
     st.audio(audio_bytes, format='audio/mp3')
