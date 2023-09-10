@@ -29,16 +29,12 @@ for i in range(1, num_clans + 1):
 
 # Type Menu Dropdown ke liye
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
-try:
-    pygame.mixer.init()
-    sound = pygame.mixer.Sound('clash_data/fook_graham.mp3')
+audio_file = st.audio('fook_graham.mp3', format='audio/mp3')
 
-    if st.button("Fook Graham"):
-        sound.play()
-
-except pygame.error as e:
-    st.error("An error occurred while initializing the audio: {}".format(e))
-
+# Create a Streamlit button to play the audio
+if st.button("Fook Graham"):
+    audio_file
+    
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
