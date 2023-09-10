@@ -6,7 +6,8 @@ from io import BytesIO
 import plotly.express as px
 import plotly.graph_objs as go
 import base64  # Format conversion ke liye
-
+from pydub import AudioSegment
+from pydub.playback import play
 
 # Page Configuration Setup kar rhe
 st.set_page_config(page_title="END OF SEASON")
@@ -29,17 +30,14 @@ for i in range(1, num_clans + 1):
 
 # Type Menu Dropdown ke liye
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
-
-# Function to display the message and play audio when the button is clicked
 def fook_graham():
-    audio_file = open('fook_graham.mp3', 'rb')  # Replace 'fook_graham.mp3' with your audio file path
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format='audio/mp3')
+    audio_file_path = 'app\\fook_graham.mp3'  # Replace with your audio file path
+    audio = AudioSegment.from_mp3(audio_file_path)
+    play(audio)
 
 # Create a Streamlit button
-if st.button("Show Love to Graham"):
+if st.button("Fook Graham"):
     fook_graham()
-
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
     for key, value in file_uploads.items():
