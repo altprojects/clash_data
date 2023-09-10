@@ -37,7 +37,7 @@ try:
         sound.play()
 
 except pygame.error as e:
-    st.error("An error occurred while initializing the audio: {}".format(e))
+    st.error()
 
 with st.spinner("Loading..."):
     # Place the code that updates the display inside the spinner context
