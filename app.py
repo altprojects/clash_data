@@ -1,19 +1,20 @@
-import pygame
 import streamlit as st
 import pandas as pd
 import io
 from io import BytesIO
 import plotly.express as px
 import plotly.graph_objs as go
-import base64  # Format conversion ke liye
+import base64  # Import the base64 module
 
-# Page Configuration Setup kar rhe
+
+# Set page configuration
 st.set_page_config(page_title="END OF SEASON")
-# Sidebar DropDown
+
+# Create a sidebar with a dropdown to select the number of clans
 st.sidebar.title("Select Number of Clans")
 num_clans = st.sidebar.selectbox("Number of Clans", [2, 3, 4, 5, 6, 7, 8])
 
-# Upload Files Section
+# Create a sidebar with file upload sections for the selected number of clans
 st.sidebar.title("Upload Files")
 file_uploads = {}
 for i in range(1, num_clans + 1):
@@ -26,41 +27,31 @@ for i in range(1, num_clans + 1):
             key_name = f"Clan {i}, {label}"
             file_uploads[key_name] = file_upload
 
-# Type Menu Dropdown ke liye
-sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Activity","Attacks","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
-# Function to display the message and play audio when the button is clicked
-def fook_graham():
-    audio_file = open('fook_graham.mp3', 'rb')  # Replace 'fook_graham.mp3' with your audio file path
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format='audio/mp3')
+# Create a dropdown menu to select the sorting order
+sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
 
-# Create a Streamlit button
-if st.button("Love for Graham"):
-    fook_graham()
-
-with st.spinner("Loading..."):
-    # Place the code that updates the display inside the spinner context
-    for key, value in file_uploads.items():
-        # st.subheader(key)
-        if value:
-            file_data = value.read()  # Read the file data
-            file_name = value.name
-            file_size = value.size
-            # st.write(f"File Name: {file_name}")
+# Process and display uploaded files in the main content area
+# st.title("END OF SEASON")
 for key, value in file_uploads.items():
     # st.subheader(key)
     if value:
         file_data = value.read()  # Read the file data
         file_name = value.name
         file_size = value.size
+
+        # Perform your processing here for each file
+        # You can access the file data and metadata individually for each uploaded file.
         # st.write(f"File Name: {file_name}")
 
-# Saari Clans ki files check krne ke baad show karna hai
+# Check if all files for the selected number of clans are uploaded
 if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
-    # Function to preprocess the data
+    # Define a function to preprocess the data
     def preprocess_data(wars_file, season_file):
+        # Read the wars and season data
         wars = pd.read_excel(wars_file)
         season = pd.read_excel(season_file)
+
+        # Merge wars and season data
         clan = wars.merge(season, on="Name", how="outer")
 
         clan.drop(columns={'Def Stars', 'Avg. Def Stars',
@@ -116,10 +107,10 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
 
         return clan
 
-    # Empty list to store preprocessed dataframes for each clan
+    # Create an empty list to store preprocessed dataframes for each clan
     all_clan_data = []
 
-    # Iterate through each Clan and preprocess the data
+    # Iterate through each group (clan) and preprocess the data
     for i in range(1, num_clans + 1):
         season_key = f"Clan {i}, Season"
         war_key = f"Clan {i}, War"
@@ -132,18 +123,18 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
                 clan_data = preprocess_data(season_file, war_file)
                 all_clan_data.append(clan_data)
 
+    # Concatenate all clan dataframes into a single dataframe
     if all_clan_data:
         final_merged_data = pd.concat(all_clan_data, ignore_index=True)
 
+        # Define sorting functions based on selected order
         sort_functions = {
             "War Stars": "Total Stars",
             "Top Member": "season_score",
             "Donations": "Total Donated",
             "EOS Trophies": "Season-End Trophies",
             "Capital Gold Contributed":"Capital Gold Contributed",
-            "Capital Gold Looted":"Capital Gold Looted",
-            "Activity":"Activity Score",
-            "Attacks":"Attacks in a Season"
+            "Capital Gold Looted":"Capital Gold Looted"
         }
         titles = {
             "War Stars": "War Monger",
@@ -155,12 +146,10 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             "All": "Best Players ",
             "Main Base":"Main Base",
             "Builder Base":"Builder Base",
-            "Capital":"Capital",
-            "Activity":"Activity King",
-            "Attacks":"Attack Master"
+            "Capital":"Capital"
         }
         sub_data=final_merged_data
-        final_merged_data.drop(columns={"Final Activty Score","Missed Attack Score"},inplace=True)
+        final_merged_data.drop(columns={"Final Activty Score","Activity Score","Missed Attack Score"},inplace=True)
         final_merged_data=final_merged_data.reset_index(drop=True)
         num_players_to_display = st.number_input("Number of Players to Display", min_value=1, max_value=len(final_merged_data), value=10)
         if sort_order=="Main Base":
@@ -195,7 +184,7 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
        'True Stars', 'Avg. True Stars', 'Total Dest', 'Avg. Dest',
        'Three Stars', 'Two Stars', 'One Stars', 'Zero Stars', 'Missed',"War Score"]]
                 fig = px.bar(display_df, x="Name",y="Total Stars",color="Total Stars",text="Total Stars",hover_data=["Total War Attacks","Total Stars","Three Stars","Avg. Stars","Total Dest"],hover_name="Name",title="Most War Stars",height=500,width=700,color_continuous_scale='YlOrRd')
-                fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+                fig.update_traces(texttemplate='%{text:.3s}', textposition='outside')
             if sort_order=="Capital Gold Contributed":
                 display_df=display_df[["Name","Clan",'Capital Gold Looted','Capital Gold Contributed']]
                 fig=go.Figure()
@@ -212,7 +201,7 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
                 display_df=display_df[["Name","Clan","Total Stars","Total Donated", "Missed","season_score"]]
                 fig=go.Figure()
                 fig=px.bar(display_df,x=display_df.Name,y='season_score',color="season_score",text='season_score',hover_data=["Total Stars","Total Donated", "Missed","season_score"],hover_name="Name",title='Top Performers',height=500,width=700,color_continuous_scale='YlOrRd')
-                fig.update_traces(texttemplate='%{text:.4s}',textposition='outside')
+                fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
 
             if sort_order=="Donations":
                 display_df=display_df[["Name","Clan",'Total Donated', 'Total Received','Donation Score']]
@@ -226,23 +215,11 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
                 fig=px.bar(display_df,x=display_df.Name,y='Season-End Trophies',color="Season-End Trophies",text='Season-End Trophies',title="Maximum Trophies",height=500,width=700,color_continuous_scale='YlOrRd')
                 fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
 
-            if sort_order=="Attacks":
-                display_df=display_df[["Name","Clan","Activity Score","Attacks in a Season"]]
-                fig=go.Figure()
-                fig=px.bar(display_df,x=display_df.Name,y='Attacks in a Season',color="Attacks in a Season",text='Attacks in a Season',title="Maximum Attacks in Season",height=500,width=700,color_continuous_scale='YlOrRd')
-                fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
-            
-            if sort_order=="Activity":
-                display_df=display_df[["Name","Clan","Activity Score","Attacks in a Season"]]
-                fig=go.Figure()
-                fig=px.bar(display_df,x=display_df.Name,y='Activity Score',color="Activity Score",text='Activity Score',title="Activity",height=500,width=700,color_continuous_scale='YlOrRd')
-                fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
-
 
         if sort_order=="All":
             display_df=final_merged_data.sort_values(by="season_score",ascending=False).head(num_players_to_display)
             fig=go.Figure()
-            fig=px.bar(display_df,x=display_df.Name,y='season_score',color="season_score",text='season_score',hover_data=["Total Stars","Total Donated","season_score","Season-End Trophies"],hover_name="Name",title='Best Performers',height=500,width=700,color_continuous_scale='YlOrRd')
+            fig=px.bar(display_df,x=display_df.Name,y='season_score',color="season_score",text='season_score',hover_data=["Total Stars","Total Donated","season_score","Season-end Trophies"],hover_name="Name",title='Best Performers',height=500,width=700,color_continuous_scale='YlOrRd')
             fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
             
         # Display the merged preprocessed data
@@ -259,3 +236,25 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             excel_buffer.seek(0)
             href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64.b64encode(excel_buffer.read()).decode()}" download="final_merged_data.xlsx">Click here to download the Excel file</a>'
             st.markdown(href, unsafe_allow_html=True)
+
+        columns_to_max = ["Total Stars", "Total Donated", "Season-End Trophies", "Attacks in a Season","season_score","Capital Gold Contributed","Capital Gold Looted"]
+
+        # Initialize an empty list to store the data
+        data_list = []
+        # Loop through the columns and find the name and value with the maximum value
+        for column in columns_to_max:
+            max_row = final_merged_data[final_merged_data[column] == final_merged_data[column].max()]
+            max_name = max_row["Name"].values[0]
+            max_value = max_row[column].values[0]
+            data_list.append([max_name, column, max_value])
+
+        # Create a Pandas DataFrame from the list of data
+        result_df = pd.DataFrame(data_list, columns=["Name", "Quality", "Value"])
+
+        # Streamlit app
+        st.title("LeaderBoard")
+
+        # Add a button to display the LeaderBoard DataFrame
+        if st.button("LeaderBoard"):
+            st.dataframe(result_df)
+
