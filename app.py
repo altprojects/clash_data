@@ -219,7 +219,7 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
         if sort_order=="All":
             display_df=final_merged_data.sort_values(by="season_score",ascending=False).head(num_players_to_display)
             fig=go.Figure()
-            fig=px.bar(display_df,x=display_df.Name,y='season_score',color="season_score",text='season_score',hover_data=["Total Stars","Total Donated","season_score","Season-end Trophies"],hover_name="Name",title='Best Performers',height=500,width=700,color_continuous_scale='YlOrRd')
+            fig=px.bar(display_df,x=display_df.Name,y='season_score',color="season_score",text='season_score',hover_name="Name",title='Best Performers',height=500,width=700,color_continuous_scale='YlOrRd')
             fig.update_traces(texttemplate='%{text:.3s}',textposition='outside')
             
         # Display the merged preprocessed data
