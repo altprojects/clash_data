@@ -44,7 +44,7 @@ if all_files_upload :
             'Total Def Dest', 'Avg. Def Dest', 'Tag_y','War-Stars Gained',
             'CWL-Stars Gained', 'Gold Looted', 'Elixir Lotted', 'Dark Elixir Looted',
             'Clan Games','Tag_x','Discord',"Town Hall_x","Town Hall_y"}, inplace=True)
-            clan.rename(columns={"Total Attacks_y":"Total War Attacks", 'Total Attacks_x':"Attacks in a Season",'Month_y':"Month"}, inplace=True)
+            clan.rename(columns={"Total Attacks_x":"Total War Attacks", 'Total Attacks_y':"Attacks in a Season",'Month_y':"Month"}, inplace=True)
             clan['Total War Attacks'].fillna(clan['Total War Attacks'].min(), inplace=True)
             clan['Total Stars'].fillna(clan['Total Stars'].min(), inplace=True)
             clan['True Stars'].fillna(clan['True Stars'].min(), inplace=True)
