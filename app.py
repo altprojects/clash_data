@@ -6,7 +6,6 @@ import plotly.express as px
 import plotly.graph_objs as go
 import base64  # Import the base64 module
 
-
 # Set page configuration
 st.set_page_config(page_title="END OF SEASON")
 
@@ -14,119 +13,96 @@ st.set_page_config(page_title="END OF SEASON")
 st.sidebar.title("Select Number of Clans")
 num_clans = st.sidebar.selectbox("Number of Clans", [2, 3, 4, 5, 6, 7, 8])
 
-# Create a sidebar with file upload sections for the selected number of clans
+# Create a sidebar with a single file uploader for all files
 st.sidebar.title("Upload Files")
-file_uploads = {}
-for i in range(1, num_clans + 1):
-    st.sidebar.subheader(f"Clan {i}")
-    for j in range(1, 3):
-        unique_key = f"clan_{i}_file_{j}"
-        label = "Season" if j == 1 else "War"  # Label the first file upload as "Season" and the second as "War"
-        file_upload = st.sidebar.file_uploader(f"Upload {label} File for Clan {i}", type=["xlsx"], key=unique_key)
-        if file_upload:
-            key_name = f"Clan {i}, {label}"
-            file_uploads[key_name] = file_upload
-
-# Create a dropdown menu to select the sorting order
+all_files_upload = st.sidebar.file_uploader("Upload All Files", type=["xlsx"], accept_multiple_files=True)
 sort_order = st.selectbox("Type", ["War Stars", "Top Member", "Donations", "EOS Trophies","Capital Gold Contributed","Capital Gold Looted","Main Base","Builder Base","Capital","All"])
 
-# Process and display uploaded files in the main content area
-# st.title("END OF SEASON")
-for key, value in file_uploads.items():
-    # st.subheader(key)
-    if value:
-        file_data = value.read()  # Read the file data
-        file_name = value.name
-        file_size = value.size
+# Process uploaded files
+if all_files_upload :
+    # Read and process the uploaded files
+    war_file= []
+    season_file=[]
 
-        # Perform your processing here for each file
-        # You can access the file data and metadata individually for each uploaded file.
-        # st.write(f"File Name: {file_name}")
+    for file_upload in all_files_upload:
+        data = pd.read_excel(file_upload, engine="openpyxl")
+        if "Total Stars" in data.columns:
+            war_file.append(data)
+        elif "Total Donated" in data.columns:
+            season_file.append(data)
 
-# Check if all files for the selected number of clans are uploaded
-if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
-    # Define a function to preprocess the data
-    def preprocess_data(wars_file, season_file):
-        # Read the wars and season data
-        wars = pd.read_excel(wars_file)
-        season = pd.read_excel(season_file)
+    # Concatenate the DataFrames only if they are not empty
+    war_df = pd.concat(war_file, ignore_index=True) if war_file else pd.DataFrame()
+    season_df = pd.concat(season_file, ignore_index=True) if season_file else pd.DataFrame()
 
-        # Merge wars and season data
-        clan = wars.merge(season, on="Name", how="outer")
+    if len(all_files_upload) == num_clans * 2 and not war_df.empty and not season_df.empty:
+        def preprocess_data(wars, season):
+            # Merge wars and season data
+            clan = wars.merge(season, on="Name", how="outer")
 
-        clan.drop(columns={'Def Stars', 'Avg. Def Stars',
-       'Total Def Dest', 'Avg. Def Dest', 'Tag_y','War-Stars Gained',
-       'CWL-Stars Gained', 'Gold Looted', 'Elixir Lotted', 'Dark Elixir Looted',
-       'Clan Games','Tag_x','Discord',"Town Hall_x","Town Hall_y"},inplace=True)
-        clan.rename(columns={"Total Attacks_y":"Total War Attacks", 'Total Attacks_x':"Attacks in a Season",'Month_y':"Month"},inplace=True)
-        clan['Total War Attacks'].fillna(clan['Total War Attacks'].min(),inplace=True)
-        clan['Total Stars'].fillna(clan['Total Stars'].min(),inplace=True)
-        clan['True Stars'].fillna(clan['True Stars'].min(),inplace=True)
-        clan['Avg. True Stars'].fillna(clan['Avg. True Stars'].min(),inplace=True)
-        clan['Avg. Stars'].fillna(clan['Avg. Stars'].min(),inplace=True)
-        clan['Total Dest'].fillna(clan['Total Dest'].min(),inplace=True)
-        clan['Avg. Dest'].fillna(clan['Avg. Dest'].min(), inplace=True)
-        clan['Two Stars'].fillna(clan['Two Stars'].min(),inplace=True)
-        clan['One Stars'].fillna(clan['One Stars'].min(),inplace=True)
-        clan['Zero Stars'].fillna(clan['Zero Stars'].min(),inplace=True)
-        clan['Three Stars'].fillna(clan['Three Stars'].min(),inplace=True)
-        clan['Missed'].fillna(clan['Missed'].min(),inplace=True)
-        clan['Total Donated'].fillna(0,inplace=True)
-        clan['Total Received'].fillna(0,inplace=True)
-        clan['Attacks in a Season'].fillna(0,inplace=True)
-        clan['Versus Attacks'].fillna(0,inplace=True)
-        clan['Trophies Gained'].fillna(0,inplace=True)
-        clan['Season-End Trophies'].fillna(clan['Season-End Trophies'].min(),inplace=True)
-        clan['Versus-Trophies Gained'].fillna(0,inplace=True)
-        clan['Capital Gold Looted'].fillna(0,inplace=True)
-        clan['Capital Gold Contributed'].fillna(0,inplace=True)
-        clan['Activity Score'].fillna(clan['Activity Score'].min(),inplace=True)
-        def war_score_func(value):
-            ul=clan['Total Stars'].quantile(0.75)
-            ll=clan['Total Stars'].quantile(0.25)
-            war_score=0.6*(value-ll)*10.0/(ul-ll)
-            return war_score
-        clan["War Score"]=clan["Total Stars"].apply(war_score_func)
-        def donation_score_func(value):
-            ul=clan['Total Donated'].quantile(0.75)
-            ll=clan['Total Donated'].quantile(0.25)
-            donation_score=0.3*(value-ll)*10.0/(ul-ll)
-            return donation_score
-        clan["Donation Score"]=clan["Total Donated"].apply(donation_score_func)
-        def activity_score_func(value):
-            ul=clan['Activity Score'].quantile(0.75)
-            ll=clan['Activity Score'].quantile(0.25)
-            final_activty_score=0.1*(value-ll)*10.0/(ul-ll)
-            return final_activty_score
-        clan["Final Activty Score"]=clan["Activity Score"].apply(activity_score_func)
-        def missed_attack_function(value):
-            missed_attack_score=(value)**2
-            return missed_attack_score
-        clan["Missed Attack Score"]=clan["Missed"].apply(missed_attack_function)
-        clan= clan.assign(season_score=clan['War Score'] + clan['Donation Score']+clan['Final Activty Score']-clan['Missed Attack Score'])
+            clan.drop(columns={'Def Stars', 'Avg. Def Stars',
+            'Total Def Dest', 'Avg. Def Dest', 'Tag_y','War-Stars Gained',
+            'CWL-Stars Gained', 'Gold Looted', 'Elixir Lotted', 'Dark Elixir Looted',
+            'Clan Games','Tag_x','Discord',"Town Hall_x","Town Hall_y"}, inplace=True)
+            clan.rename(columns={"Total Attacks_y":"Total War Attacks", 'Total Attacks_x':"Attacks in a Season",'Month_y':"Month"}, inplace=True)
+            clan['Total War Attacks'].fillna(clan['Total War Attacks'].min(), inplace=True)
+            clan['Total Stars'].fillna(clan['Total Stars'].min(), inplace=True)
+            clan['True Stars'].fillna(clan['True Stars'].min(), inplace=True)
+            clan['Avg. True Stars'].fillna(clan['Avg. True Stars'].min(), inplace=True)
+            clan['Avg. Stars'].fillna(clan['Avg. Stars'].min(), inplace=True)
+            clan['Total Dest'].fillna(clan['Total Dest'].min(), inplace=True)
+            clan['Avg. Dest'].fillna(clan['Avg. Dest'].min(), inplace=True)
+            clan['Two Stars'].fillna(clan['Two Stars'].min(), inplace=True)
+            clan['One Stars'].fillna(clan['One Stars'].min(), inplace=True)
+            clan['Zero Stars'].fillna(clan['Zero Stars'].min(), inplace=True)
+            clan['Three Stars'].fillna(clan['Three Stars'].min(), inplace=True)
+            clan['Missed'].fillna(clan['Missed'].min(), inplace=True)
+            clan['Total Donated'].fillna(0, inplace=True)
+            clan['Total Received'].fillna(0, inplace=True)
+            clan['Attacks in a Season'].fillna(0, inplace=True)
+            clan['Versus Attacks'].fillna(0, inplace=True)
+            clan['Trophies Gained'].fillna(0, inplace=True)
+            clan['Season-End Trophies'].fillna(clan['Season-End Trophies'].min(), inplace=True)
+            clan['Versus-Trophies Gained'].fillna(0, inplace=True)
+            clan['Capital Gold Looted'].fillna(0, inplace=True)
+            clan['Capital Gold Contributed'].fillna(0, inplace=True)
+            clan['Activity Score'].fillna(clan['Activity Score'].min(), inplace=True)
 
-        return clan
+            def war_score_func(value):
+                ul = clan['Total Stars'].quantile(0.75)
+                ll = clan['Total Stars'].quantile(0.25)
+                war_score = 0.6 * (value - ll) * 10.0 / (ul - ll)
+                return war_score
 
-    # Create an empty list to store preprocessed dataframes for each clan
-    all_clan_data = []
+            clan["War Score"] = clan["Total Stars"].apply(war_score_func)
 
-    # Iterate through each group (clan) and preprocess the data
-    for i in range(1, num_clans + 1):
-        season_key = f"Clan {i}, Season"
-        war_key = f"Clan {i}, War"
+            def donation_score_func(value):
+                ul = clan['Total Donated'].quantile(0.75)
+                ll = clan['Total Donated'].quantile(0.25)
+                donation_score = 0.3 * (value - ll) * 10.0 / (ul - ll)
+                return donation_score
 
-        if season_key in file_uploads and war_key in file_uploads:
-            season_file = file_uploads[season_key]
-            war_file = file_uploads[war_key]
+            clan["Donation Score"] = clan["Total Donated"].apply(donation_score_func)
 
-            if season_file is not None and war_file is not None:
-                clan_data = preprocess_data(season_file, war_file)
-                all_clan_data.append(clan_data)
+            def activity_score_func(value):
+                ul = clan['Activity Score'].quantile(0.75)
+                ll = clan['Activity Score'].quantile(0.25)
+                final_activity_score = 0.1 * (value - ll) * 10.0 / (ul - ll)
+                return final_activity_score
 
-    # Concatenate all clan dataframes into a single dataframe
-    if all_clan_data:
-        final_merged_data = pd.concat(all_clan_data, ignore_index=True)
+            clan["Final Activity Score"] = clan["Activity Score"].apply(activity_score_func)
 
+            def missed_attack_function(value):
+                missed_attack_score = (value) ** 2
+                return missed_attack_score
+
+            clan["Missed Attack Score"] = clan["Missed"].apply(missed_attack_function)
+            clan = clan.assign(season_score=clan['War Score'] + clan['Donation Score'] + clan['Final Activity Score'] - clan['Missed Attack Score'])
+
+            return clan
+
+        # Preprocess data
+        final_merged_data = preprocess_data(war_df, season_df)
         # Define sorting functions based on selected order
         sort_functions = {
             "War Stars": "Total Stars",
@@ -149,7 +125,7 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
             "Capital":"Capital"
         }
         sub_data=final_merged_data
-        final_merged_data.drop(columns={"Final Activty Score","Activity Score","Missed Attack Score"},inplace=True)
+        final_merged_data.drop(columns={"Activity Score","Missed Attack Score"},inplace=True)
         final_merged_data=final_merged_data.reset_index(drop=True)
         num_players_to_display = st.number_input("Number of Players to Display", min_value=1, max_value=len(final_merged_data), value=10)
         if sort_order=="Main Base":
@@ -257,4 +233,3 @@ if len(file_uploads) == num_clans * 2:  # Assuming 2 files for each clan
         # Add a button to display the LeaderBoard DataFrame
         if st.button("LeaderBoard"):
             st.dataframe(result_df)
-
